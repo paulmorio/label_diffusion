@@ -14,8 +14,8 @@ import numpy as np
 def label_diffusion(adj, known_labels, known_nodes, unknown_nodes, alpha=0.99, precision=1e20, max_iterations=100):
 	"""
 	Function implementing the whole label diffusion algorithm, with and without regularisation as referred in
-	Zhou et al. 'Learning with Local and Global Consistency'. Mainly to help out those poor folks who cant find 
-	implementations of this algorithm online.
+	Zhou et al. 'Learning with Local and Global Consistency'. This implementation uses the adjacency matrix as the
+	matrix affinity.
 
 	Keyword Arguments:
 	adj -- an adjacency matrix of the network
@@ -37,7 +37,7 @@ def label_diffusion(adj, known_labels, known_nodes, unknown_nodes, alpha=0.99, p
 		print "The adjacency matrix provided isnt square"
 		return None
 
-	# Check alpha is in ]0,1[
+	# Check alpha is in (0,1) exclusive
 	if (alpha <= 0 or alpha >= 1):
 		print "Alpha should be between 0 and 1 exclusive"
 		return None
@@ -84,7 +84,8 @@ def evaluation(predictions, test_node_indices, y_test):
 def label_diffusion_features(adj, features, known_labels, known_nodes, unknown_nodes, alpha=0.99, precision=1e20, max_iterations=100):
 	"""
 	Function implementing the whole label diffusion algorithm, with and without regularisation as referred in
-	Zhou et al. 'Learning with Local and Global Consistency'.This version incorporates the features of nodes. 
+	Zhou et al. 'Learning with Local and Global Consistency'.This version incorporates the features of nodes, by using
+	the laplacian as the affinity matrix. 
 
 	Keyword Arguments:
 	adj -- an adjacency matrix of the network
@@ -109,7 +110,7 @@ def label_diffusion_features(adj, features, known_labels, known_nodes, unknown_n
 	# to help calculate sigma in affinity matrix
 	for row in range(0,adjn):
 		if row % 5 == 0:
-			print "sigmas " + str(row)
+			#print "sigmas " + str(row)
 		for column in range(0,adjm):
 			if row == column:
 				sigmas[row, column] = 0
@@ -123,13 +124,8 @@ def label_diffusion_features(adj, features, known_labels, known_nodes, unknown_n
 
 	for row in range(0,adjn):
 		if row % 5 == 0:
-			print row
+			#print row
 		for column in range(0,adjm):
-			# if row == column:
-			# 	w[row, column] = 0
-			# else:
-			# 	dist = sigmas[row, column] # little bit a memoization 
-			# 	w[row, column] = np.exp((-np.power(dist,2))/(2*sigma))
 			if adj[row,column] == 1:
 				dist = sigmas[row, column] # little bit a memoization 
 				w[row, column] = np.exp((-np.power(dist,2))/(2*sigma))
@@ -139,11 +135,6 @@ def label_diffusion_features(adj, features, known_labels, known_nodes, unknown_n
 	w = np.matrix(w)
 	# Check affinitity matrix w is square
 	n, m = w.shape
-	print n,m
-	print adj.shape
-	print type(adj)
-	print type(w)
-	print w
 	#lapl = 
 	if n != m:
 		print "The affinity matrix provided isnt square"
@@ -169,7 +160,7 @@ def label_diffusion_features(adj, features, known_labels, known_nodes, unknown_n
 	initial_scores[known_nodes, :] = known_labels
 	predictions_score = initial_scores
 
-	# # Propagation
+	# # Propagation Uncomment if you want to use propagation
 	# for i in range(max_iterations):
 	# 	last_score = predictions_score
 	# 	predictions_score = (alpha * diffusion_matrix * predictions_score) + ((1-alpha)*initial_scores)
@@ -177,6 +168,7 @@ def label_diffusion_features(adj, features, known_labels, known_nodes, unknown_n
 	# 	if np.max(np.max(np.abs(last_score - predictions_score))) > precision:
 	# 		print "Precision Required Reached in iteration %s " % (i)
 	# 		#break
+
 	# instead of propagation
 	predictions_score = (np.linalg.inv(np.identity(n) - alpha*diffusion_matrix)) * predictions_score
 
@@ -191,7 +183,7 @@ def label_diffusion_features(adj, features, known_labels, known_nodes, unknown_n
 def label_diffusion_zhou(adj, features, known_labels, known_nodes, unknown_nodes, alpha=0.99, precision=1e20, max_iterations=100):
 	"""
 	Function implementing the whole label diffusion algorithm, with and without regularisation as referred in
-	Zhou et al. 'Learning with Local and Global Consistency'.This version incorporates the features of nodes. 
+	Zhou et al. 'Learning with Local and Global Consistency'. This is the classic Zhou et. al. algorithm using a Gaussian affinity matrix.
 
 	Keyword Arguments:
 	adj -- an adjacency matrix of the network
@@ -216,7 +208,7 @@ def label_diffusion_zhou(adj, features, known_labels, known_nodes, unknown_nodes
 	# to help calculate sigma in affinity matrix
 	for row in range(0,adjn):
 		if row % 5 == 0:
-			print "sigmas " + str(row)
+			#print "sigmas " + str(row)
 		for column in range(0,adjm):
 			if row == column:
 				sigmas[row, column] = 0
@@ -230,7 +222,7 @@ def label_diffusion_zhou(adj, features, known_labels, known_nodes, unknown_nodes
 
 	for row in range(0,adjn):
 		if row % 5 == 0:
-			print row
+			#print row
 		for column in range(0,adjm):
 			if row == column:
 				w[row, column] = 0
@@ -241,11 +233,6 @@ def label_diffusion_zhou(adj, features, known_labels, known_nodes, unknown_nodes
 	w = np.matrix(w)
 	# Check affinitity matrix w is square
 	n, m = w.shape
-	print n,m
-	print adj.shape
-	print type(adj)
-	print type(w)
-	print w
 	#lapl = 
 	if n != m:
 		print "The affinity matrix provided isnt square"
@@ -270,7 +257,7 @@ def label_diffusion_zhou(adj, features, known_labels, known_nodes, unknown_nodes
 	initial_scores[known_nodes, :] = known_labels
 	predictions_score = initial_scores
 
-	# # Propagation
+	# # Propagation 
 	# for i in range(max_iterations):
 	# 	last_score = predictions_score
 	# 	predictions_score = (alpha * diffusion_matrix * predictions_score) + ((1-alpha)*initial_scores)
